@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "hono/jsx",
+    "target": "ES2020",
+    "allowJs": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "incremental": false,
+    "paths": {
+      "~/*": ["./src/*"]
+    }
+    // "rootDir": "./"
+  },
+  "include": [
+    "../wealthy-presence/src/**/*.ts",
+    "src/**/*.ts",
+    ".eslintrc.cjs",
+    "prettier.config.js",
+    "src/index.tsx"
+  ],
+  "exclude": ["node_modules", "dist"]
+}
