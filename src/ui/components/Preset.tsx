@@ -6,6 +6,7 @@ import { PlusIcon } from "../icons/PlusIcon";
 import { Button } from "./Button";
 import { Chip } from "./Chip";
 import { CloseIcon } from "../icons/CloseIcon";
+import { cn } from "~/utils/cn";
 
 export interface PresetShape {
   title: string;
@@ -29,7 +30,7 @@ interface PresetProps extends Partial<PresetShape> {
   isQueued?: boolean;
 }
 
-export const Preset: FC<PresetProps> = ({
+export const Preset: FC<PresetProps & Hono.HTMLAttributes> = ({
   title,
   description,
   buttons,
@@ -38,9 +39,16 @@ export const Preset: FC<PresetProps> = ({
   largeImageText,
   smallImageText,
   isQueued,
+  ...props
 }) => {
   return (
-    <div class="p-4 border border-zinc-800 rounded-lg hover:bg-zinc-900 transition-colors hover:border-zinc-500">
+    <div
+      {...props}
+      class={cn(
+        "p-4 border border-zinc-800 rounded-lg hover:bg-zinc-900 transition-colors hover:border-zinc-500",
+        props.class,
+      )}
+    >
       {/* Discord images */}
       {largeImageUrl !== undefined && smallImageUrl !== undefined && (
         <div class="relative w-1/6 aspect-square mb-2 mr-2">
