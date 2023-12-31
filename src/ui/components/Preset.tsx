@@ -3,8 +3,11 @@ import type { FC } from "hono/jsx";
 import { EditIcon } from "../icons/EditIcon";
 import { TrashIcon } from "../icons/TrashIcon";
 import { PlusIcon } from "../icons/PlusIcon";
+import { Button } from "./Button";
+import { Chip } from "./Chip";
+import { CloseIcon } from "../icons/CloseIcon";
 
-export interface Preset {
+export interface PresetShape {
   title: string;
   description: string;
 
@@ -22,12 +25,19 @@ export interface Preset {
   ];
 }
 
-export const PresetF: FC<Partial<Preset>> = ({
+interface PresetProps extends Partial<PresetShape> {
+  isQueued?: boolean;
+}
+
+export const Preset: FC<PresetProps> = ({
   title,
   description,
   buttons,
   largeImageUrl,
   smallImageUrl,
+  largeImageText,
+  smallImageText,
+  isQueued,
 }) => {
   return (
     <div class="p-4 border border-zinc-800 rounded-lg hover:bg-zinc-900 transition-colors hover:border-zinc-500">
@@ -48,12 +58,13 @@ export const PresetF: FC<Partial<Preset>> = ({
       )}
 
       <div class="flex items-center gap-2">
-        <button class="border-zinc-800 border rounded-full py-1.5 px-3.5">
+        <Button variant="outline" size="sm">
           <EditIcon />
-        </button>
-        <button class="text-red-400 border-red-400 border rounded-full py-1.5 px-3.5">
+        </Button>
+
+        <Button variant="destructive" size="sm">
           <TrashIcon />
-        </button>
+        </Button>
       </div>
 
       {/* Discord title & description */}
@@ -69,20 +80,22 @@ export const PresetF: FC<Partial<Preset>> = ({
 
       {/* Actions */}
       <div class="flex items-center justify-between gap-2">
-        <button
-          hx-post="/set-presets"
-          class="flex items-center gap-1 px-3.5 py-1.5 rounded-full border border-white"
-        >
+        {isQueued ? (
+          <Button size="sm" variant="destructive" class="grow">
+            Remove from queue
+            <CloseIcon />
+          </Button>
+        ) : (
+          <Button size="sm" variant="secondary" class="grow">
+            Add to queue
+            <PlusIcon />
+          </Button>
+        )}
+
+        <Button size="sm" hx-post="/set-activity">
           Set
           <PlusIcon />
-        </button>
-        <button
-          hx-post="/add-to-queue"
-          class="rounded-full grow px-3.5 py-1.5 flex items-center justify-center border border-emerald-700 text-emerald-700 gap-1"
-        >
-          Add to queue
-          <PlusIcon />
-        </button>
+        </Button>
       </div>
     </div>
   );

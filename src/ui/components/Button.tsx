@@ -1,5 +1,4 @@
-import type { Child, FC } from "hono/jsx";
-import type { Hono } from "hono";
+import type { FC } from "hono/jsx";
 import type { VariantProps } from "tailwind-variants";
 import { tv } from "tailwind-variants";
 
@@ -36,7 +35,10 @@ export const Button: FC<
   Hono.ButtonHTMLAttributes & VariantProps<typeof button>
 > = ({ variant, shape, size, children, ...props }) => {
   return (
-    <button {...props} class={button({ variant, shape, size })}>
+    <button
+      {...props}
+      class={button({ variant, shape, size, class: props.class })}
+    >
       {children}
     </button>
   );
