@@ -1,58 +1,57 @@
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
-import type { FC } from "hono/jsx";
-import { WealthyPresence } from "../../wealthy-presence/src/index";
-
-const Layout: FC = async ({ presets }: { presets: { title: string }[] }) => (
-  <html>
-    <head>
-      <title>hey</title>
-      <link rel="stylesheet" href="/static/css/output.css" />
-    </head>
-
-    <body class="bg-zinc-950 text-white">
-      <div class="">
-        <h1>hey</h1>
-        <p>epic</p>
-        <button hx-post="/setActivity" hx-swap="outerHTML">
-          Set Activity
-        </button>
-
-        {presets.map(async preset => (
-          <div>{preset.title}</div>
-        ))}
-        <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-      </div>
-    </body>
-  </html>
-);
+import { WealthyPresence } from "wealthy-presence";
+import { Layout } from "./ui/layout";
 
 function withWeb(presence: WealthyPresence, config?: { port?: number }) {
   const app = new Hono();
+
+  // CSS stuff
   app.use("/static/*", serveStatic({ root: "./" }));
 
-  app.get("/", async c => c.html(<Layout />));
+  // home
+  app.get("/", async c => c.html(<Layout presets={presence.getPresets()} />));
 
-  app.post("setActivity", async c =>
-    // await presence.setActivity({
-    //   title: "updated with a GUI! imagine that",
-    // });
-    c.html(JSON.stringify("updated")),
-  );
+  app.post("set-activity", async c => {
+    await presence.setActivity({
+      title: "updated with a GUI! imagine that",
+    });
+    return c.html("updated");
+  });
+
+  app.post("stop", async c => {
+    await presence.stop();
+    return c.html("stopped");
+  });
+
+  app.post("run", async c => {
+    await presence.run();
+    return c.html("running");
+  });
 
   serve(
     {
       fetch: app.fetch,
-      port: 4232,
+      port: config?.port ?? 4232,
     },
     info => console.log("Listening on port", info.port, "🚀"),
   );
 }
 
 const presence = new WealthyPresence({
-  appId: "",
-  presets: [{ title: "test1" }, { title: "test2" }],
+  appId: process.env.APP_ID!,
+  presets: [
+    {
+      title: "test3",
+      description: "desc",
+      largeImageUrl:
+        "https://media0.giphy.com/media/8vRvucL4OhyjyM4A8T/giphy.gif",
+      smallImageUrl:
+        "https://media0.giphy.com/media/8vRvucL4OhyjyM4A8T/giphy.gif",
+    },
+    { title: "test2", description: "hey" },
+  ],
 });
 
 withWeb(presence);

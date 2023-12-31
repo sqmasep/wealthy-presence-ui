@@ -1,0 +1,83 @@
+{
+  "Debug": {
+    "prefix": "debug, sf",
+    "body": ["<pre>{JSON.stringify(${1:data}, null, 2)}</pre>"],
+    "description": "Generate a visual debug template for react"
+  },
+
+  "JSX component": {
+    "prefix": "rc",
+    "body": [
+      "import type { FC } from \"hono/jsx\";",
+      "",
+      "export const ${TM_FILENAME_BASE}: FC = () => {",
+      "\treturn <div>$0</div>",
+      "}",
+    ],
+    "description": "Generate a React component template"
+  },
+
+  "React component with props": {
+    "prefix": "rcp, rci",
+    "body": [
+      "interface ${TM_FILENAME_BASE}Props {",
+      "\t$0",
+      "}",
+      "",
+      "const ${TM_FILENAME_BASE}: React.FC<${TM_FILENAME_BASE}Props> = ({}) => {",
+      "\treturn <div>$1</div>",
+      "}",
+      "",
+      "export default ${TM_FILENAME_BASE};"
+    ],
+    "description": "Generate a React component with props template"
+  },
+
+  "React component with props and spreading": {
+    "prefix": "rcpspread, rcispread",
+    "body": [
+      "interface ${TM_FILENAME_BASE}Props {",
+      "\t$0",
+      "}",
+      "",
+      "const ${TM_FILENAME_BASE}: React.FC<${TM_FILENAME_BASE}Props & Omit<React.ComponentPropsWithoutRef<\"div\">, keyof ${TM_FILENAME_BASE}Props>> = ({ ...props }) => {",
+      "\treturn <div {...props}>${1:${TM_FILENAME_BASE}}</div>;",
+      "};",
+      "",
+      "export default ${TM_FILENAME_BASE};"
+    ],
+    "description": "Generate a React component with props and spreading template"
+  },
+
+  "React component with props and spreading and tailwind-variants": {
+    "prefix": "rcpvar, rcivar",
+    "body": [
+      "import { tv } from \"tailwind-variants\";"
+      "import type { VariantProps } from \"tailwind-variants\";"
+      "",
+      "interface ${TM_FILENAME_BASE}Props {",
+      "\t$1",
+      "}",
+      "",
+      "const ${TM_FILENAME_BASE/(.)(.*)/${1:/downcase}${2}/} = tv({",
+      "\tbase: \"\",",
+      "\tvariants: {",
+      "\t\t$0",
+      "\t}",
+      "})",
+      "",
+      "const ${TM_FILENAME_BASE}: React.FC<",
+      "\t${TM_FILENAME_BASE}Props & ",
+      "\t\tVariantProps<typeof ${TM_FILENAME_BASE/(.)(.*)/${1:/downcase}${2}/}> & ",
+      "\t\tOmit<",
+      "\t\t\tReact.ComponentPropsWithoutRef<\"div\">,",
+      "\t\t\tkeyof ${TM_FILENAME_BASE}Props | keyof VariantProps<typeof ${TM_FILENAME_BASE/(.)(.*)/${1:/downcase}${2}/}>",
+      "\t\t>",
+      "> = ({ $0, ...props }) => {",
+      "\treturn <div {...props} className={${TM_FILENAME_BASE/(.)(.*)/${1:/downcase}${2}/}({ $0 })}>${2:${TM_FILENAME_BASE}}</div>",
+      "}",
+      "",
+      "export default ${TM_FILENAME_BASE};"
+    ]
+  }
+}

@@ -6,4 +6,6 @@ module.exports = {
   semi: true,
   singleQuote: false,
   arrowParens: "avoid",
+
+  plugins: ["prettier-plugin-tailwindcss"],
 };

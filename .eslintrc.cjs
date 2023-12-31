@@ -10,5 +10,7 @@ module.exports = {
   plugins: [],
   rules: {
     "no-duplicate-imports": "off",
+    "@typescript-eslint/promise-function-async": "off",
+    "arrow-body-style": "off",
   },
 };
