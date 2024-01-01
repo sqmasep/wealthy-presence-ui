@@ -10,11 +10,13 @@ import { PlayIcon } from "./ui/icons/PlayIcon";
 function withWeb(presence: WealthyPresence, config?: { port?: number }) {
   const app = new Hono();
 
+  const defaultPresets = presence.getPresets();
+
   // CSS stuff
   app.use("/static/*", serveStatic({ root: "./" }));
 
   // home
-  app.get("/", async c => c.html(<Layout presets={presence.getPresets()} />));
+  app.get("/", async c => c.html(<Layout presets={defaultPresets} />));
 
   app.post("set-activity", async c => {
     await presence.setActivity({
@@ -24,10 +26,11 @@ function withWeb(presence: WealthyPresence, config?: { port?: number }) {
   });
 
   app.post("/set-preset", async c => {
+    console.log(await c.req.parseBody());
     presence.setPresets([
       { title: "only preset now", description: "isnt it that cool" },
     ]);
-    return c.html("updated");
+    return c.html("preset has been set!");
   });
 
   app.post("/stop", async c => {

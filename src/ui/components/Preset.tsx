@@ -100,7 +100,7 @@ export const Preset: FC<PresetProps & Hono.HTMLAttributes> = ({
           </Button>
         )}
 
-        <Button size="sm" hx-post="/set-activity">
+        <Button size="sm" hx-post="/set-preset" hx-vals='{"title": "testok"}'>
           Set
           <PlusIcon />
         </Button>
