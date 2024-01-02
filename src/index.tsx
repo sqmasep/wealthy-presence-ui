@@ -2,21 +2,28 @@ import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
 import { WealthyPresence } from "wealthy-presence";
-import { Layout } from "./ui/layout";
-import { Button } from "./ui/components/Button";
-import { CloseIcon } from "./ui/icons/CloseIcon";
-import { PlayIcon } from "./ui/icons/PlayIcon";
+// import { Layout } from "./ui/layout";
+// import { Button } from "./ui/components/Button";
+// import { CloseIcon } from "./ui/icons/CloseIcon";
+// import { PlayIcon } from "./ui/icons/PlayIcon";
+// import { cors } from "hono/cors";
 
 function withWeb(presence: WealthyPresence, config?: { port?: number }) {
   const app = new Hono();
 
   const defaultPresets = presence.getPresets();
 
-  // CSS stuff
-  app.use("/static/*", serveStatic({ root: "./" }));
+  // CORS
+  // app.use("*", cors());
 
   // home
-  app.get("/", async c => c.html(<Layout presets={defaultPresets} />));
+  // app.get("/", async c => c.html(<Layout presets={defaultPresets} />));
+  app.use("/static/*", serveStatic({ root: "./" }));
+  app.use("/assets/*", serveStatic({ root: "./web/dist/" }));
+  app.get("/", (c, next) => {
+    console.log("hey");
+    return serveStatic({ path: "./web/dist/index.html" })(c, next);
+  });
 
   app.post("set-activity", async c => {
     await presence.setActivity({
@@ -24,6 +31,8 @@ function withWeb(presence: WealthyPresence, config?: { port?: number }) {
     });
     return c.html("updated");
   });
+
+  app.get("/testjson", c => c.json({ hello: "world" }));
 
   app.post("/set-preset", async c => {
     console.log(await c.req.parseBody());
@@ -33,23 +42,23 @@ function withWeb(presence: WealthyPresence, config?: { port?: number }) {
     return c.html("preset has been set!");
   });
 
-  app.post("/stop", async c => {
-    await presence.stop();
-    return c.html(
-      <Button variant="primary" hx-post="/run" hx-swap="outerHTML">
-        Run <PlayIcon />
-      </Button>,
-    );
-  });
+  // app.post("/stop", async c => {
+  //   await presence.stop();
+  //   return c.html(
+  //     <Button variant="primary" hx-post="/run" hx-swap="outerHTML">
+  //       Run <PlayIcon />
+  //     </Button>,
+  //   );
+  // });
 
-  app.post("/run", async c => {
-    await presence.run();
-    return c.html(
-      <Button variant="destructive" hx-post="/stop" hx-swap="outerHTML">
-        Stop <CloseIcon />
-      </Button>,
-    );
-  });
+  // app.post("/run", async c => {
+  //   await presence.run();
+  //   return c.html(
+  //     <Button variant="destructive" hx-post="/stop" hx-swap="outerHTML">
+  //       Stop <CloseIcon />
+  //     </Button>,
+  //   );
+  // });
 
   serve(
     {
