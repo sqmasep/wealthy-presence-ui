@@ -1,12 +1,8 @@
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
-import { WealthyPresence } from "wealthy-presence";
-// import { Layout } from "./ui/layout";
-// import { Button } from "./ui/components/Button";
-// import { CloseIcon } from "./ui/icons/CloseIcon";
-// import { PlayIcon } from "./ui/icons/PlayIcon";
-// import { cors } from "hono/cors";
+import { WealthyPresence, createPreset } from "wealthy-presence";
+import { cors } from "hono/cors";
 
 function withWeb(presence: WealthyPresence, config?: { port?: number }) {
   const app = new Hono();
@@ -14,51 +10,60 @@ function withWeb(presence: WealthyPresence, config?: { port?: number }) {
   const defaultPresets = presence.getPresets();
 
   // CORS
-  // app.use("*", cors());
+  app.use("*", cors());
 
   // home
-  // app.get("/", async c => c.html(<Layout presets={defaultPresets} />));
   app.use("/static/*", serveStatic({ root: "./" }));
   app.use("/assets/*", serveStatic({ root: "./web/dist/" }));
   app.get("/", (c, next) => {
-    console.log("hey");
     return serveStatic({ path: "./web/dist/index.html" })(c, next);
   });
 
-  app.post("set-activity", async c => {
-    await presence.setActivity({
-      title: "updated with a GUI! imagine that",
-    });
-    return c.html("updated");
+  app.get("/presets", c => c.json(presence.getPresets()));
+  app.post("/presets", c => {
+    presence.addPreset(createPreset({ title: "test" }));
+    return c.json(presence.getPresets(), 201);
   });
-
-  app.get("/testjson", c => c.json({ hello: "world" }));
 
   app.post("/set-preset", async c => {
     console.log(await c.req.parseBody());
     presence.setPresets([
-      { title: "only preset now", description: "isnt it that cool" },
+      createPreset({
+        title: "only preset now",
+        description: "isnt it that cool",
+      }),
     ]);
-    return c.html("preset has been set!");
+    return c.json(presence.getPresets(), 200);
   });
 
-  // app.post("/stop", async c => {
-  //   await presence.stop();
-  //   return c.html(
-  //     <Button variant="primary" hx-post="/run" hx-swap="outerHTML">
-  //       Run <PlayIcon />
-  //     </Button>,
-  //   );
-  // });
+  app.delete("/delete-preset", async c => {
+    // TODO validate id (maybe use "/preset/:id" instead of "/delete-preset")
+    presence.removePreset((await c.req.json())?.id);
+    return c.json(presence.getPresets(), 200);
+  });
 
-  // app.post("/run", async c => {
-  //   await presence.run();
-  //   return c.html(
-  //     <Button variant="destructive" hx-post="/stop" hx-swap="outerHTML">
-  //       Stop <CloseIcon />
-  //     </Button>,
-  //   );
-  // });
+  app.post("/restore-state", c => {
+    presence.setPresets(defaultPresets);
+    return c.json(presence.getPresets(), 200);
+  });
+
+  app.post("/run", async c => {
+    try {
+      await presence.run();
+      return c.json({ message: "Running" }, 200);
+    } catch (error) {
+      return c.json({ message: "Something went wrong" }, 500);
+    }
+  });
+
+  app.post("/stop", async c => {
+    await presence.stop();
+    return c.json({ message: "Stopped" }, 200);
+  });
+
+  app.get("/is-running", c => {
+    return c.json({ isRunning: presence.isRunning() }, 200);
+  });
 
   serve(
     {
@@ -72,15 +77,17 @@ function withWeb(presence: WealthyPresence, config?: { port?: number }) {
 const presence = new WealthyPresence({
   appId: process.env.APP_ID!,
   presets: [
-    {
-      title: "trying some HTMX",
-      description: "seems to work with wealthy-presence :)",
+    createPreset({
+      title: "HTMX is bad actually",
+      description: "my things working so good",
       largeImageUrl:
         "https://media0.giphy.com/media/8vRvucL4OhyjyM4A8T/giphy.gif",
       smallImageUrl:
         "https://media0.giphy.com/media/8vRvucL4OhyjyM4A8T/giphy.gif",
-    },
+    }),
   ],
 });
 
 withWeb(presence);
+
+presence.run();
