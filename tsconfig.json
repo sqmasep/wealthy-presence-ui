@@ -23,7 +23,7 @@
     "src/**/*.ts",
     "src/**/*.tsx",
     ".eslintrc.cjs",
-    "prettier.config.js",
+    "prettier.config.cjs",
     "src/index.tsx"
   ],
   "exclude": ["node_modules", "dist"]
