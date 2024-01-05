@@ -26,3 +26,6 @@ Still in development.
 - How to link the Vite server with the Hono server in development? should i dynamically create a Vite server from there?
 - How to handle the API URL (e.g: "POST http://localhost:4232/run" -> "/run")? Constraints: the user decides the port, so i might need to create a Vite server by hand. Technically it works on production but in development it doesn't, i'm not even sure of what i'm saying.
 
+## TODOs
+
+- [ ] Make multiple queues with multiple presets inside of them (have to save them somewhere)
