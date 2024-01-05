@@ -10,9 +10,9 @@ module.exports = {
   ],
   prefix: "",
   theme: {
-    // fontFamily: {
-    //   sans: ["Geist", "Inter", "Helvetica", "sans-serif"],
-    // },
+    fontFamily: {
+      sans: ["Geist", "Inter", "Helvetica", "sans-serif"],
+    },
     container: {
       center: true,
       padding: "2rem",
