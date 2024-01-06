@@ -41,7 +41,20 @@ export function useQueue() {
   return useQuery({
     queryKey: ["queue", "get"],
     queryFn: async () => {
-      const res = await api["presets-queue"].$get();
+      const res = await api.queue.$get();
+      return await res.json();
+    },
+  });
+}
+
+export function useMutateQueue() {
+  const utils = useQueryClient();
+
+  return useMutation({
+    mutationKey: ["queue", "mutate"],
+    mutationFn: async (id: string) => {
+      const res = await api.queue.$post({ json: { id } });
+      await utils.invalidateQueries({ queryKey: ["queue", "get"] });
       return await res.json();
     },
   });
