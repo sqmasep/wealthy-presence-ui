@@ -7,4 +7,6 @@ module.exports = {
   singleQuote: false,
   arrowParens: "avoid",
   printWidth: 80,
+
+  plugins: ["prettier-plugin-tailwindcss"],
 };

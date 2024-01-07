@@ -3,8 +3,7 @@ import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
 import { WealthyPresence, createPreset } from "wealthy-presence";
 import { cors } from "hono/cors";
-import { vValidator } from "@hono/valibot-validator";
-import { object, string } from "valibot";
+import { idValidator } from "./lib/validation/server-only";
 
 async function parsePreset(
   preset: ReturnType<WealthyPresence["getPresets"]>[number],
@@ -26,7 +25,6 @@ function withWeb(presence: WealthyPresence, config?: { port?: number }) {
     .use("*", cors())
 
     // Static files
-    .use("/static/*", serveStatic({ root: "./" }))
     .use("/assets/*", serveStatic({ root: "./web/dist/" }))
 
     // React app
@@ -51,7 +49,7 @@ function withWeb(presence: WealthyPresence, config?: { port?: number }) {
 
       return c.json(await Promise.all(parsedPresets));
     })
-    .post("/queue", vValidator("json", object({ id: string() })), async c => {
+    .post("/queue", idValidator, async c => {
       const foundPreset = defaultPresets.find(
         preset => preset.id === c.req.valid("json").id,
       );
@@ -61,7 +59,7 @@ function withWeb(presence: WealthyPresence, config?: { port?: number }) {
       presence.addPreset(foundPreset);
       return c.json(presence.getPresets(), 201);
     })
-    .delete("/queue-item", vValidator("json", object()), async c => {
+    .delete("/queue-item", idValidator, async c => {
       presence.removePreset((await c.req.json())?.id);
     })
 
@@ -69,25 +67,16 @@ function withWeb(presence: WealthyPresence, config?: { port?: number }) {
       presence.addPreset(createPreset({ title: "test" }));
       return c.json(presence.getPresets(), 201);
     })
-    .post(
-      "/set-preset",
-      vValidator(
-        "json",
-        object({
-          id: string(),
-        }),
-      ),
-      async c => {
-        const foundPreset = defaultPresets.find(
-          preset => preset.id === c.req.valid("json").id,
-        );
+    .post("/set-preset", idValidator, async c => {
+      const foundPreset = defaultPresets.find(
+        preset => preset.id === c.req.valid("json").id,
+      );
 
-        if (!foundPreset) return c.json({ message: "Preset not found" }, 404);
+      if (!foundPreset) return c.json({ message: "Preset not found" }, 404);
 
-        presence.setPresets([foundPreset]);
-        return c.json(presence.getPresets(), 200);
-      },
-    )
+      presence.setPresets([foundPreset]);
+      return c.json(presence.getPresets(), 200);
+    })
     .delete("/delete-preset", async c => {
       // TODO validate id (maybe use "/preset/:id" instead of "/delete-preset")
       presence.removePreset((await c.req.json())?.id);

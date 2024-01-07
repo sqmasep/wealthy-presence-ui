@@ -1,68 +1,50 @@
-import { useEffect, useState } from "react";
 import { Button } from "./components/ui/button";
 import { PlayIcon, X } from "lucide-react";
-import PresetCard from "./components/PresetCard";
+import { Queue } from "./features/queue/components/Queue";
+import { useMutateStatus, useStatus } from "~/lib/react-query";
+import Presets from "./features/preset/components/Presets";
+import { useMutateQueue } from "./features/queue/hooks/useMutateQueue";
 
 function App() {
-  const [presets, setPresets] = useState<unknown[] | null>(null);
+  const { data: status } = useStatus();
 
-  useEffect(() => {
-    (async () => {
-      const res = await fetch("http://localhost:4232/presets").then((r) =>
-        r.json(),
-      );
-
-      setPresets(res);
-    })();
-  }, []);
-
-  async function handleRun() {
-    const res = await fetch("http://localhost:4232/run", {
-      method: "post",
-    }).then((r) => r.json());
-
-    if (res?.message) {
-      alert(res?.message);
-    }
-  }
+  const { mutate: changeStatus, isPending } = useMutateStatus();
+  const { mutate: mutateQueue } = useMutateQueue();
 
   return (
     <>
       <div className="container mx-auto">
-        <h1 className="font-bold text-lg text-center">
+        <h1 className="text-center text-lg font-bold">
           Wealthy Presence <span className="text-blue-400">UI</span>
         </h1>
-        <Button size="icon" onClick={handleRun}>
-          <PlayIcon />
+
+        <Button
+          size="icon"
+          variant={status?.isRunning ? "destructive" : "default"}
+          onClick={() => {
+            changeStatus(status?.isRunning ? "stop" : "run");
+          }}
+        >
+          {status?.isRunning ? <X /> : <PlayIcon />}
         </Button>
 
-        {/* <Button size="icon" variant="destructive">
-        <X />
-      </Button> */}
+        <h2 className="text-zinc-500">
+          Status{" "}
+          {status?.isRunning ? (
+            <span className="inline-flex items-center gap-2 font-bold text-zinc-50">
+              Running
+              <span className="h-3 w-3 animate-pulse rounded-full bg-red-800" />
+            </span>
+          ) : (
+            <span>Stopped</span>
+          )}
+        </h2>
 
-        <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {presets?.map(({ id, value }) => (
-            <PresetCard
-              key={id}
-              id={id}
-              type="object-like"
-              title={value?.title}
-              description={value?.description}
-              buttons={value?.buttons}
-              largeImageUrl={value?.largeImageUrl}
-              smallImageUrl={value?.smallImageUrl}
-              onDelete={async () => {
-                const res = await fetch("http://localhost:4232/delete-preset", {
-                  method: "delete",
-                  body: JSON.stringify({ id }),
-                }).then((r) => r.json());
-                console.log(res);
-                setPresets(res);
-              }}
-              // largeImageUrl="https://media0.giphy.com/media/8vRvucL4OhyjyM4A8T/giphy.gif"
-            />
-          ))}
-        </div>
+        <Queue />
+
+        <h3 className="mb-4 mt-8 text-3xl font-semibold">Presets</h3>
+
+        <Presets />
       </div>
     </>
   );
