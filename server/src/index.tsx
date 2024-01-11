@@ -1,9 +1,11 @@
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
+import type { AnyPreset } from "wealthy-presence";
 import { WealthyPresence, createPreset } from "wealthy-presence";
 import { cors } from "hono/cors";
 import { idValidator } from "./lib/validation/server-only";
+import { WebSocketServer } from "ws";
 
 async function parsePreset(
   preset: ReturnType<WealthyPresence["getPresets"]>[number],
@@ -18,6 +20,26 @@ async function parsePreset(
 }
 
 function withWeb(presence: WealthyPresence, config?: { port?: number }) {
+  const wss = new WebSocketServer({
+    port: 4233,
+  });
+
+  wss.addListener("connection", ws => {
+    function emit(event: "preset changed", data: unknown) {
+      ws.send(JSON.stringify({ event, data }));
+    }
+
+    const listener = (preset: AnyPreset) => {
+      emit("preset changed", preset);
+    };
+
+    presence.on("activity changed", listener);
+    ws.on("close", () => {
+      console.log("connection closed");
+      presence.removeListener("activity changed", listener);
+    });
+  });
+
   const defaultPresets = presence.getPresets();
 
   const app = new Hono()
@@ -49,7 +71,7 @@ function withWeb(presence: WealthyPresence, config?: { port?: number }) {
 
       return c.json(await Promise.all(parsedPresets));
     })
-    .post("/queue", idValidator, async c => {
+    .post("/queue", idValidator, c => {
       const foundPreset = defaultPresets.find(
         preset => preset.id === c.req.valid("json").id,
       );
@@ -138,4 +160,6 @@ const presence = new WealthyPresence({
   ],
 });
 
-const app = withWeb(presence);
+withWeb(presence);
+
+presence.run();
