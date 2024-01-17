@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "dev": "tsx watch src/index.tsx",
+    "dev": "tsx watch src/index.ts",
     "dev:web": "vite ./web"
   },
   "type": "module",
