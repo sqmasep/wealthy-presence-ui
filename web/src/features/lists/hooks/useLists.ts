@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "~/lib/api";
 
-export function usePresets() {
+export function useLists() {
   return useQuery({
-    queryKey: ["presets", "get"],
+    queryKey: ["lists", "get"],
     queryFn: async () => {
-      const res = await api.preset.$get();
+      const res = await api.lists.$get();
       return await res.json();
     },
   });

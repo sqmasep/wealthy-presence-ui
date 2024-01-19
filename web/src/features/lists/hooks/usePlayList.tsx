@@ -1,19 +1,19 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "~/lib/api";
+import { listToast } from "~/components/ui/sonner";
 
-export function useSetPreset() {
+export default function usePlayList() {
   const utils = useQueryClient();
 
   return useMutation({
-    mutationKey: ["presets", "set"],
-    mutationFn: async (preset: string) => {
-      const res = await api["set-preset"].$post({
-        json: { id: preset },
-      });
-      return await res.json();
+    mutationFn: async (id: string) => {
+      const res = await api.lists.play.$post({ json: { id } });
+
+      return res;
     },
     onSuccess: async () => {
       await utils.invalidateQueries({ queryKey: ["queue", "get"] });
+      listToast("Playlist started");
     },
   });
 }
