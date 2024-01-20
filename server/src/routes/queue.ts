@@ -14,13 +14,20 @@ export default function queueRouterBuilder(presence: WealthyPresence) {
     })
     .post("/add-by-id", idValidator, async c => {
       const id = c.req.valid("json").id;
+      const lists = presence.getLists();
+      const queue = presence.getQueue();
 
-      presence.getLists().forEach(list => {
+      for (const list of lists) {
         const preset = list.presets.find(preset => preset.id === id);
-        if (presence.getQueue().presets.find(preset => preset.id === id))
-          return;
+
+        // If already in the queue
+        if (queue.presets.find(preset => preset.id === id))
+          return c.json(queue, 200);
+
         if (preset) presence.addPresetToQueue(preset);
-      });
+      }
+
+      return c.json(presence.getQueue(), 201);
     })
     .post("/set", idValidator, c => {
       const foundPreset = presence
@@ -43,7 +50,6 @@ export default function queueRouterBuilder(presence: WealthyPresence) {
     })
     .delete("/clear", c => {})
     .delete("/remove-by-id", idValidator, async c => {
-      console.log(c.req.valid("json").id);
       presence.removePresetFromQueue(c.req.valid("json").id);
 
       const queue = presence.getQueue();
