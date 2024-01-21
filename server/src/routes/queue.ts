@@ -1,6 +1,8 @@
+import { vValidator } from "@hono/valibot-validator";
 import { Hono } from "hono";
+import { number, object } from "valibot";
 import type { WealthyPresence } from "wealthy-presence";
-import { idValidator } from "~/lib/validation/server-only";
+import { idValidator, idsValidator } from "~/lib/validation/server-only";
 import parsePreset from "~/utils/parsePreset";
 
 export default function queueRouterBuilder(presence: WealthyPresence) {
@@ -11,6 +13,24 @@ export default function queueRouterBuilder(presence: WealthyPresence) {
       const awaited = await Promise.all(parsedPresets);
 
       return c.json(awaited, 200);
+    })
+    .post("/set-by-ids", idsValidator, async c => {
+      const ids = c.req.valid("json").ids;
+      const lists = presence.getLists();
+
+      presence.setQueue(
+        ids
+          .map(id => {
+            for (const list of lists) {
+              const preset = list.presets.find(preset => preset.id === id);
+
+              if (preset) return preset;
+            }
+          })
+          .filter(Boolean),
+      );
+
+      return c.json(presence.getQueue(), 200);
     })
     .post("/add-by-id", idValidator, async c => {
       const id = c.req.valid("json").id;
@@ -29,7 +49,7 @@ export default function queueRouterBuilder(presence: WealthyPresence) {
 
       return c.json(presence.getQueue(), 201);
     })
-    .post("/set", idValidator, c => {
+    .post("/set-one", idValidator, c => {
       const foundPreset = presence
         .getLists()
         .flatMap(list => list.presets)
@@ -47,6 +67,12 @@ export default function queueRouterBuilder(presence: WealthyPresence) {
         ...queue,
         presets: awaited,
       });
+    })
+    .post("/set-index", vValidator("json", object({ index: number() })), c => {
+      const index = c.req.valid("json").index;
+      presence.experimental$setCurrentQueueIndex(index);
+
+      return c.json(presence.getQueue(), 200);
     })
     .delete("/clear", c => {})
     .delete("/remove-by-id", idValidator, async c => {
