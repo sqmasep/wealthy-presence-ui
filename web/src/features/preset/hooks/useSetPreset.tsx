@@ -8,7 +8,7 @@ export function useSetPreset() {
   return useMutation({
     mutationKey: ["presets", "set"],
     mutationFn: async (preset: string) => {
-      const res = await api.queue.set.$post({
+      const res = await api.queue["set-one"].$post({
         json: { id: preset },
       });
       return await res.json();
