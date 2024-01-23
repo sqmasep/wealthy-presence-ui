@@ -8,13 +8,13 @@ import { api } from "./api";
 
 export const queryClient = new QueryClient();
 
-type WealthyStatus = "run" | "stop";
+type WealthyStatus = "start" | "stop";
 
 export function useStatus() {
   return useQuery({
     queryKey: ["status", "get"],
     queryFn: async () => {
-      const res = await api["is-running"].$get();
+      const res = await api.status.$get();
       return await res.json();
     },
   });
@@ -26,12 +26,12 @@ export function useMutateStatus() {
   return useMutation({
     mutationKey: ["status", "mutate"],
     mutationFn: async (status: WealthyStatus) => {
-      if (status === "run") {
-        const res = await api.run.$post();
+      if (status === "start") {
+        const res = await api.status.$post({ json: { action: "start" } });
         return await res.json();
       }
 
-      const res = await api.stop.$post();
+      const res = await api.status.$post({ json: { action: "stop" } });
       return await res.json();
     },
     onSuccess: async () => {
