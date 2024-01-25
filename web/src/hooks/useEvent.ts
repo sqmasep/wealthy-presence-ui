@@ -1,14 +1,13 @@
 import { useEffect } from "react";
 import { ws } from "~/lib/ws";
 
-export function useEvent(
-  eventName: "preset changed",
-  cb: (data: unknown) => void
-) {
+type EventName = "activity changed";
+
+export function useEvent(eventName: EventName, cb: (data: unknown) => void) {
   useEffect(() => {
     const internalCb = (e: MessageEvent) => {
       const data = JSON.parse(e.data);
-      if (data.event === eventName) cb(data.data);
+      if (data.event === eventName) cb(data.data[0]);
     };
     ws.addEventListener("message", internalCb);
     return () => {
