@@ -16,7 +16,8 @@ import { Input } from "~/components/ui/input";
 import { Badge } from "~/components/ui/badge";
 import { useToggle } from "~/hooks/useToggle";
 import { useSetPreset } from "../hooks/useSetPreset";
-import { useMutateQueue } from "~/features/queue/hooks/useMutateQueue";
+import { useAddToQueueById } from "~/features/queue/hooks/useAddToQueueById";
+import { useQueue } from "~/features/queue/hooks/useQueue";
 
 type PresetCardProps = {
   type?: "object-like" | "function-like";
@@ -71,47 +72,51 @@ const PresetCard: React.FC<
   });
 
   const { mutate: setPreset } = useSetPreset();
-  const { mutate: mutateQueue } = useMutateQueue();
+  const { data: queue } = useQueue();
+  const { mutate: addToQueue } = useAddToQueueById();
 
   return (
     <div
       {...props}
       className={cn(
-        "rounded-lg border border-zinc-900 p-4",
+        "flex flex-col items-start rounded-lg border border-zinc-900 bg-zinc-900/10 p-4 transition-transform duration-75 hover:scale-[1.02]",
         props.className
         // "border-blue-700 bg-blue-950/40"
       )}
     >
-      <div className="relative aspect-square w-1/2">
-        {largeImageUrl && (
-          <img
-            src={largeImageUrl}
-            alt={largeImageText}
-            className="absolute inset-0 aspect-square object-cover object-center"
-          />
+      <div className="flex w-full items-start justify-between">
+        {(largeImageUrl || smallImageUrl) && (
+          <div className="relative aspect-square w-1/2">
+            {largeImageUrl && (
+              <img
+                src={largeImageUrl}
+                alt={largeImageText}
+                className="absolute inset-0 aspect-square object-cover object-center"
+              />
+            )}
+
+            {smallImageUrl && (
+              <img
+                src={smallImageUrl}
+                alt={largeImageText}
+                className="absolute bottom-0 right-0 aspect-square w-1/3 rounded-full object-cover object-center shadow-2xl shadow-black"
+              />
+            )}
+          </div>
         )}
 
-        {smallImageUrl && (
-          <img
-            src={smallImageUrl}
-            alt={largeImageText}
-            className="absolute bottom-0 right-0 aspect-square w-1/3 rounded-full object-cover object-center shadow-2xl shadow-black"
-          />
-        )}
-      </div>
-
-      <div className="flex items-center gap-1">
-        {/* Edit */}
-        <Button
-          variant="outline"
-          size="icon"
-          className="flex px-6 py-1 text-white"
-          shape="rounded"
-          onClick={toggleShouldEdit}
-        >
-          <Pencil />
-        </Button>
-        {/* <Dialog>
+        <div className="ml-auto flex items-center gap-1">
+          {/* Edit */}
+          <Button
+            variant="outline"
+            size="icon"
+            className="flex px-6 py-1 text-white"
+            shape="rounded"
+            onClick={toggleShouldEdit}
+          >
+            <Pencil />
+          </Button>
+          {/* <Dialog>
         <DialogTrigger asChild></DialogTrigger>
         <DialogContent>
           <DialogHeader>
@@ -164,27 +169,30 @@ const PresetCard: React.FC<
         </DialogContent>
       </Dialog> */}
 
-        {/* Delete */}
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button size="icon" variant="destructive" shape="rounded">
-              <Trash size={16} />
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Delete "{title}"?</DialogTitle>
-              <DialogDescription>This action is irreversible</DialogDescription>
-            </DialogHeader>
-
-            <DialogFooter>
-              <Button variant="ghost">Cancel</Button>
-              <Button variant="destructive" onClick={() => onDelete()}>
-                Delete
+          {/* Delete */}
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button size="icon" variant="destructive" shape="rounded">
+                <Trash size={16} />
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Delete "{title}"?</DialogTitle>
+                <DialogDescription>
+                  This action is irreversible
+                </DialogDescription>
+              </DialogHeader>
+
+              <DialogFooter>
+                <Button variant="ghost">Cancel</Button>
+                <Button variant="destructive" onClick={() => onDelete()}>
+                  Delete
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <Badge
@@ -201,7 +209,7 @@ const PresetCard: React.FC<
       </div>
 
       {buttons?.length && (
-        <div className="my-4 flex flex-col gap-2">
+        <div className="my-4 flex w-full flex-col gap-2">
           {buttons?.map(({ label }) => (
             <Button key={label} variant="secondary" size="sm">
               {label}
@@ -210,8 +218,15 @@ const PresetCard: React.FC<
         </div>
       )}
 
-      <div className="flex items-center gap-2">
-        <Button shape="rounded" variant="ghost" onClick={() => setPreset(id)}>
+      <div className="mt- mt-auto flex w-full items-center gap-2">
+        <Button
+          shape="rounded"
+          variant="ghost"
+          onClick={() => {
+            if (queue?.length === 1 && queue?.[0]?.id === id) return;
+            setPreset(id);
+          }}
+        >
           Set
         </Button>
 
@@ -220,7 +235,8 @@ const PresetCard: React.FC<
           variant="outline"
           className="grow"
           onClick={() => {
-            mutateQueue(id);
+            if (queue?.some(d => d.id === id)) return;
+            addToQueue(id);
           }}
         >
           <Plus size={16} />
