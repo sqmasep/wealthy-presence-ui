@@ -6,7 +6,7 @@ export default function Presets() {
 
   return (
     <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {presets?.map(({ id, value, type }) => (
+      {presets?.presets?.map(({ id, value, type }) => (
         <PresetCard
           key={id}
           id={id}
@@ -22,7 +22,7 @@ export default function Presets() {
               body: JSON.stringify({ id }),
             }).then(r => r.json());
             console.log(res);
-            setPresets(res);
+            // setPresets(res);
           }}
           // largeImageUrl="https://media0.giphy.com/media/8vRvucL4OhyjyM4A8T/giphy.gif"
         />
